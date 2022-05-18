@@ -3,7 +3,6 @@
 const express = require("express")
 const fetch = require("node-fetch");
 const fs = require("fs");
-require('dotenv').config()
 
 
 const app = express();
