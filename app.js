@@ -2,43 +2,57 @@
 
 const express = require("express")
 const fetch = require("node-fetch");
-const FormData = require("form-data");
 const fs = require("fs");
+require('dotenv').config()
 
-  
+
 const app = express();
 const port = 3000;
 app.use(express.urlencoded({ extended : false }))
 app.use(express.json())
+const API_KEY = process.env.NFT_PORT_KEY
   
 // // Handling request 
-function getNFT(body){    
-    const data_body = JSON.stringify(body)
-
-let url = 'https://api.nftport.xyz/v0/mints/easy/urls';
-
-let options = {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: 'b8f48132-ed04-4a82-b23a-00eabc15c99e'
-  },
-  body: data_body
-};
-
-fetch(url, options)
-  .then(res => res.json())
-  .then(json => console.log(json))
-  .catch(err => console.error('error:' + err));
+async function getNFT(body){
+  const data_body = JSON.stringify(body)
+  
+  let url = 'https://api.nftport.xyz/v0/mints/easy/urls';
+  let options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: API_KEY
+    },
+    body: data_body
+  }
+  try {
+    const response = await fetch(url, options)
+    return response.json();
+  } catch (err) {
+   // handle error
+    console.error(err);
+  }
 }
 
-app.post('/nft', (req, res) => {
+
+app.post('/nft', async (req, res) => {
+  try{
   const body = req.body
-  res.status(201).send(body)
-  getNFT(body)
+  const nft = await getNFT(body)
+  res.send(nft).status(200)
+  res.end()
+  }
+  catch(e){
+    res.end(e)
+  }
 })
+
+
+app.get('/', (req, res) => {
+  res.send('nft_generator');
+});
   
 // Server Setup
-app.listen(port, () => {
+app.listen(port,'0.0.0.0', () => {
    console.log(`server is running at ${port}`);
 });
