@@ -10,7 +10,8 @@ const port = 3000;
 app.use(express.urlencoded({ extended : false }))
 app.use(express.json())
 const API_KEY = process.env.NFT_PORT_KEY
-  
+
+
 // // Handling request 
 async function getNFT(body){
   const data_body = JSON.stringify(body)
@@ -50,7 +51,8 @@ app.post('/nft', async (req, res) => {
 app.get('/', (req, res) => {
   res.send('nft_generator');
 });
-  
+
+
 // Server Setup
 app.listen(port,'0.0.0.0', () => {
    console.log(`server is running at ${port}`);
