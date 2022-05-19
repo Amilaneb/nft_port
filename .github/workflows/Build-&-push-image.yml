@@ -3,7 +3,8 @@ name: Docker Image Build & Push
 on:
   push:
     paths:
-    - '/**'
+    - 'app.js'
+    - 'dockerfile'
 
 jobs:
 
