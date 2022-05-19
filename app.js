@@ -102,6 +102,7 @@ app.post('/nft', async (req, res) => {
 app.post('/mint', async (req, res)=>{
   try{
     const body = req.body
+    console.log(body)
     const nft = await deployContractAndMint(
       body.address,
       body.name,
