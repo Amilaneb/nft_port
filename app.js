@@ -3,6 +3,7 @@
 const express = require("express")
 const fetch = require("node-fetch");
 const fs = require("fs");
+const { json } = require("express");
 require('dotenv').config()
 
 
@@ -34,39 +35,43 @@ async function postRequests(body, url){
   }
 }
 
-async function deployContractAndMint(address, name, symbol,desc, file_url){
-  const body_contract = JSON.stringify({
-    "chain": "rinkeby",
-    "name": name,
-    "symbol": symbol,
-    "owner_address": OWNER_ADRESS,
-    "metadata_updatable": false,
-    "type": "erc721"
-  })
-  
-  const body_data = JSON.stringify({
+async function deployContractAndMint(address, name, desc, file_url){
+
+  const body_data = {
     "name": name,
     "description": desc,
     "file_url": file_url
-  })  
+  }
 
-  const response = await postRequests(body_contract, 'https://api.nftport.xyz/v0/contracts')
+  try{
   const ipfs_data = await postRequests(body_data, 'https://api.nftport.xyz/v0/metadata')
-  
-  const body_mint = JSON.stringify({
-    "chain": "rinkeby",
-    "contract_address": OWNER_ADRESS,
-    "metadata_uri": ipfs_data.metadata_uri,
-    "mint_to_address": address
-  })
+  console.log(ipfs_data)
+  }
+  catch(e)
+  {
+    console.log(e)
+  }
+  const body_mint = {
+      "chain": "rinkeby",
+      "contract_address": '0xcd9eaf45916f142aaa628e70a2c5eb3fea9353ce',
+      "metadata_uri": ipfs_data.metadata_uri,
+      "mint_to_address": address
+  }
+    
+  try{
+    const minted_custom = await postRequests(body_mint, 'https://api.nftport.xyz/v0/mints/customizable')
+    console.log(minted_custom)
+    return minted_custom
+  }catch(e){
+    console.log(e)
+  }
 
-  const minted_custom = await postRequests(body_mint, 'https://api.nftport.xyz/v0/mints/customizable')
-  return minted_custom
+  
 }
 
-
-async function getMintedNFTs(){
-  let url = 'https://api.nftport.xyz/v0/me/mints';
+async function getMintedNFTs(address){
+  let url = 'https://api.nftport.xyz/v0/accounts/'+address+'?chain=rinkeby';
+  console.log(url)
 
 let options = {
   method: 'GET',
@@ -88,7 +93,13 @@ try {
 
 app.post('/nft', async (req, res) => {
   try{
-  const body = req.body
+  const body = {
+    "chain": "rinkeby",
+    "name": req.body.name,
+    "description": req.body.description,
+    "file_url": req.body.file_url,
+    "mint_to_address": req.body.mint_to_address
+  }
   console.log(body)
   const nft = await postRequests(body,'https://api.nftport.xyz/v0/mints/easy/urls')
   res.send(nft)
@@ -102,15 +113,15 @@ app.post('/nft', async (req, res) => {
 app.post('/mint', async (req, res)=>{
   try{
     const body = req.body
-    console.log(body)
     const nft = await deployContractAndMint(
       body.address,
       body.name,
-      body.symbol,
       body.description,
-      body.file_url,
-      'https://api.nftport.xyz/v0/mints/easy/urls')
-    res.send(nft)
+      body.file_url
+      )
+    const ipfs_data = await postRequests(data_to_store,'https://api.nftport.xyz/v0/metadata')
+    console.log(ipfs_data)
+    res.send(nft).status(200)
     res.end()
     }
     catch(e){
@@ -120,11 +131,13 @@ app.post('/mint', async (req, res)=>{
 
 app.get('/minted', async (req, res) =>{
   try{
-    const nft = await getMintedNFTs()
+    console.log(req.query)
+    const nft = await getMintedNFTs(req.query.address)
     res.send(nft).status(200)
     res.end()
     }
     catch(e){
+      res.status(500)
       res.end(e)
     }
 })
@@ -133,7 +146,7 @@ app.post('/transfer', async (req, res) =>{
   try{
     const body = req.body
     const nft = await postRequests(body, 'https://api.nftport.xyz/v0/mints/transfers')
-    res.send(nft).status(200)
+    res.send(nft)
     res.end()
     }
     catch(e){
