@@ -46,22 +46,17 @@ async function deployContractAndMint(address, name, desc, file_url){
   try{
   const ipfs_data = await postRequests(body_data, 'https://api.nftport.xyz/v0/metadata')
   console.log(ipfs_data)
-  }
-  catch(e)
-  {
-    console.log(e)
-  }
+
   const body_mint = {
-      "chain": "rinkeby",
-      "contract_address": '0xcd9eaf45916f142aaa628e70a2c5eb3fea9353ce',
-      "metadata_uri": ipfs_data.metadata_uri,
-      "mint_to_address": address
+    "chain": "rinkeby",
+    "contract_address": '0xcd9eaf45916f142aaa628e70a2c5eb3fea9353ce',
+    "metadata_uri": ipfs_data.metadata_uri,
+    "mint_to_address": address
   }
-    
-  try{
-    const minted_custom = await postRequests(body_mint, 'https://api.nftport.xyz/v0/mints/customizable')
-    console.log(minted_custom)
-    return minted_custom
+  const minted_custom = await postRequests(body_mint, 'https://api.nftport.xyz/v0/mints/customizable')
+  console.log(minted_custom)
+  return minted_custom
+
   }catch(e){
     console.log(e)
   }
@@ -119,8 +114,7 @@ app.post('/mint', async (req, res)=>{
       body.description,
       body.file_url
       )
-    const ipfs_data = await postRequests(data_to_store,'https://api.nftport.xyz/v0/metadata')
-    console.log(ipfs_data)
+
     res.send(nft).status(200)
     res.end()
     }
