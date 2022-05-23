@@ -148,7 +148,10 @@ app.post('/mint', async (req, res)=>{
 
 app.get('/token', async(req,res)=>{
   try{
-    console.log(req.query.hash)
+    const hash = {
+      "hash":req.query.hash
+    }
+    console.log(hash)
     const token = await getToken(req.query.hash)
     console.log(token)
     const token_id = {
