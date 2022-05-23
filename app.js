@@ -136,7 +136,7 @@ app.post('/mint', async (req, res)=>{
       const nft = {
         "token_id":getToken.token_id,
         "transaction_hash":result.transaction_hash,
-        "constract_address":result.contract_address
+        "contract_address":result.contract_address
       }
     res.send(nft).status(200)
     res.end()
@@ -148,9 +148,14 @@ app.post('/mint', async (req, res)=>{
 
 app.get('/token', async(req,res)=>{
   try{
-  const token = await getToken(req.query.hash)
-  res.send(token.token_id).status(200)
-  res.end()
+    console.log(req.query.hash)
+    const token = await getToken(req.query.hash)
+    console.log(token)
+    const token_id = {
+      "token_id":token.token_id
+    }
+    res.send(token_id).status(200)
+    res.end()
   }catch(e){
     console.log(e)
   }
