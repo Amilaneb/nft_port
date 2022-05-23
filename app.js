@@ -94,7 +94,7 @@ async function transfer(body){
     "chain":"rinkeby",
     "contract_address":"0xcd9eaf45916f142aaa628e70a2c5eb3fea9353ce",
     "token_id": getToken.token_id,
-    "transfer_to_address": getToken.address
+    "transfer_to_address": body.address
   }
 
   const transaction = await postRequests(body_transfer, 'https://api.nftport.xyz/v0/mints/transfers')
