@@ -6,7 +6,6 @@ const fs = require("fs");
 const { json } = require("express");
 require('dotenv').config()
 
-
 const app = express();
 const port = 3000;
 app.use(express.urlencoded({ extended : false }))
@@ -64,18 +63,14 @@ async function deployContractAndMint(address, name, desc, file_url){
   
 }
 
-async function getMintedNFTs(address){
-  let url = 'https://api.nftport.xyz/v0/accounts/'+address+'?chain=rinkeby';
-  console.log(url)
-
-let options = {
-  method: 'GET',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: API_KEY
-  }
+async function getRequests(url, paramss){
+  let options = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: API_KEY
+    }
 };
-
 try {
   const response = await fetch(url, options)
   return response.json();
@@ -83,6 +78,28 @@ try {
  // handle error
   console.error(err);
 }
+}
+
+async function getToken(hash){
+  const token = await getRequests('https://api.nftport.xyz/v0/mints/'+hash+'?chain=rinkeby')
+  return token
+}
+
+async function transfer(body){
+
+  const getToken = await getRequests('https://api.nftport.xyz/v0/mints/'+body.hash+'?chain=rinkeby')
+  console.log(getToken)
+    
+  const body_transfer = {
+    "chain":"rinkeby",
+    "contract_address":"0xcd9eaf45916f142aaa628e70a2c5eb3fea9353ce",
+    "token_id": getToken.token_id,
+    "transfer_to_address": getToken.address
+  }
+
+  const transaction = await postRequests(body_transfer, 'https://api.nftport.xyz/v0/mints/transfers')
+  
+  return transaction
 }
 
 
@@ -108,13 +125,19 @@ app.post('/nft', async (req, res) => {
 app.post('/mint', async (req, res)=>{
   try{
     const body = req.body
-    const nft = await deployContractAndMint(
+    const result = await deployContractAndMint(
       body.address,
       body.name,
       body.description,
       body.file_url
       )
-
+      // const getToken = await getRequests('https://api.nftport.xyz/v0/mints/'+result.transaction_hash+'?chain=rinkeby')
+      // console.log(getToken)
+      const nft = {
+        "token_id":getToken.token_id,
+        "transaction_hash":result.transaction_hash,
+        "constract_address":result.contract_address
+      }
     res.send(nft).status(200)
     res.end()
     }
@@ -123,10 +146,20 @@ app.post('/mint', async (req, res)=>{
     }
 })
 
+app.get('/token', async(req,res)=>{
+  try{
+  const token = await getToken(req.query.hash)
+  res.send(token.token_id).status(200)
+  res.end()
+  }catch(e){
+    console.log(e)
+  }
+})
+
 app.get('/minted', async (req, res) =>{
   try{
     console.log(req.query)
-    const nft = await getMintedNFTs(req.query.address)
+    const nft = await getRequests('https://api.nftport.xyz/v0/accounts/'+req.query.address+'?chain=rinkeby')
     res.send(nft).status(200)
     res.end()
     }
@@ -138,8 +171,13 @@ app.get('/minted', async (req, res) =>{
 
 app.post('/transfer', async (req, res) =>{
   try{
-    const body = req.body
-    const nft = await postRequests(body, 'https://api.nftport.xyz/v0/mints/transfers')
+    console.log(req.body)
+    const body = {
+      "hash": req.body.hash,
+      "address": req.body.address       
+    }
+    const nft = await transfer(body)
+    console.log(nft)
     res.send(nft)
     res.end()
     }
