@@ -151,8 +151,8 @@ app.get('/token', async(req,res)=>{
     const hash = {
       "hash":req.query.hash
     }
-    console.log(hash)
-    const token = await getToken(req.query.hash)
+    console.log(req.query.hash)
+    const token = await getToken(hash.hash)
     console.log(token)
     const token_id = {
       "token_id":token.token_id
